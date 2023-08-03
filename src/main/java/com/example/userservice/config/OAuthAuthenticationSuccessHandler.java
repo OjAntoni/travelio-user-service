@@ -61,7 +61,6 @@ public class OAuthAuthenticationSuccessHandler implements AuthenticationSuccessH
 
         // Now you can access the OAuth2User's attributes
         Map<String, Object> attributes = oauth2User.getAttributes();
-        System.out.println(attributes);
         // Your custom logic here
         //if user does not exist register it
         if (!userService.existsByEmail((String) attributes.get("email"))) {
