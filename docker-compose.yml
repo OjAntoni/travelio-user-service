@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  # Application Service
+  app:
+    image: travelio-user-service:latest
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgresdb
+
+  # PostgreSQL Service
+  postgresdb:
+    image: postgres:13
+    ports:
+      - "5430:5432"
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=secret
+
+
