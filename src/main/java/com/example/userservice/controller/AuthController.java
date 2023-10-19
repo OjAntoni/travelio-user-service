@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.example.userservice.model.*;
+import com.example.userservice.service.QueueService;
 import com.example.userservice.util.JwtUtils;
 import com.example.userservice.dto.request.LoginRequest;
 import com.example.userservice.dto.request.SignupRequest;
@@ -19,8 +20,10 @@ import com.example.userservice.service.EmailService;
 import com.example.userservice.service.UserService;
 import com.example.userservice.service.VerificationCodeService;
 import com.example.userservice.util.UserMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -69,6 +72,11 @@ public class AuthController {
     @Autowired
     UserMapper userMapper;
 
+    @Autowired
+    QueueService queueService;
+    @Autowired
+    ObjectMapper objectMapper;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) throws IOException {
         User byUsername = userService.get(loginRequest.getUsername());
@@ -79,6 +87,7 @@ public class AuthController {
 //        if(!byUsername.isEmailConfirmed()){
 //            return ResponseEntity.badRequest().body(new MessageResponse("Error: email has not been confirmed"));
 //        }
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -160,13 +169,15 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
+    @SneakyThrows
     public ResponseEntity<?> verifyUserEmail(@RequestParam UUID code){
         User user = codeService.findByCode(code);
         if (codeService.isExpired(code)) {
             return new ResponseEntity<>(new MessageResponse("Code is expired"), HttpStatus.BAD_REQUEST);
         }
         user.setEmailConfirmed(true);
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        queueService.sendToTopic("users_events", objectMapper.writeValueAsString(saved), "USER_CREATED");
         return new ResponseEntity<>(HttpStatus.OK);
 
 

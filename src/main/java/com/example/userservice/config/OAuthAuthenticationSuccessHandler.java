@@ -5,6 +5,7 @@ import com.example.userservice.dto.response.MessageResponse;
 import com.example.userservice.model.*;
 import com.example.userservice.repository.RoleRepository;
 import com.example.userservice.service.FirebaseService;
+import com.example.userservice.service.QueueService;
 import com.example.userservice.service.UserService;
 import com.example.userservice.util.ImageUtils;
 import com.example.userservice.util.JwtUtils;
@@ -53,6 +54,10 @@ public class OAuthAuthenticationSuccessHandler implements AuthenticationSuccessH
     private ObjectMapper mapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private QueueService queueService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -77,8 +82,8 @@ public class OAuthAuthenticationSuccessHandler implements AuthenticationSuccessH
                     .provider(Provider.GOOGLE)
                     .imgName(photoName)
                     .build();
-            userService.save(user);
-
+            User saved = userService.save(user);
+            queueService.sendToTopic("users_events", objectMapper.writeValueAsString(saved), "USER_CREATED");
             mapper.writeValue(response.getOutputStream(), new MessageResponse("User registered successfully!"));
         } else {
             User byUsername = userService.get((String) attributes.get("name"));
@@ -96,6 +101,5 @@ public class OAuthAuthenticationSuccessHandler implements AuthenticationSuccessH
 
             mapper.writeValue(response.getOutputStream(), new JwtResponse(jwt, roles, userMapper.map(byUsername)));
         }
-//        response.sendRedirect("/my-custom-url");
     }
 }

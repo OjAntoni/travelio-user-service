@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class FirebaseService {
-    private final String FIREBASE_SDK_JSON = "travelio-8e986-firebase-adminsdk-gtns2-9ca84ca7c0.json";
+    private final String FIREBASE_SDK_JSON = "travelio-8e986-bbc8e8d49c54.json";
     private final String FIREBASE_PROJECT_ID = "travelio-8e986";
     private final String FIREBASE_BUCKET = "travelio-8e986.appspot.com";
 

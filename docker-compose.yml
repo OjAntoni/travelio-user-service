@@ -4,6 +4,7 @@ services:
   # Application Service
   app:
     image: travelio-user-service:latest
+    build: .
     ports:
       - "8082:8082"
     depends_on:
@@ -13,7 +14,7 @@ services:
   postgresdb:
     image: postgres:13
     ports:
-      - "5430:5432"
+      - "5000:5432"
     environment:
       - POSTGRES_DB=mydatabase
       - POSTGRES_USER=myuser
