@@ -23,6 +23,7 @@ public class UserService {
         return byUsername;
     }
 
+    @Transactional
     public User update(User user){
         if(userRepository.findById(user.getId()).isEmpty())
             throw new EntityNotFoundException("User with id="+user.getId()+" not found");
@@ -43,7 +44,6 @@ public class UserService {
         if (request.getLastname() != null) {
             existingUser.setLastname(request.getLastname());
         }
-        // handle other fields similarly
 
         return userRepository.save(existingUser);
     }
@@ -59,5 +59,9 @@ public class UserService {
 
     public boolean existsByEmail(String email){
         return userRepository.existsByEmail(email);
+    }
+    @Transactional
+    public void delete(long id){
+        userRepository.deleteById(id);
     }
 }

@@ -98,4 +98,20 @@ public class UserController {
         return new ResponseEntity<>(objectMapper.writeValueAsString(jsonNode), HttpStatus.OK);
     }
 
+    @SneakyThrows
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteUser(Principal principal){
+        User toRemove = userService.get(principal.getName());
+        toRemove.setFirstname("DELETED");
+        toRemove.setLastname("DELETED");
+        toRemove.setEmail("DELETED");
+        toRemove.setUsername("DELETED");
+        toRemove.setPassword("DELETED");
+        toRemove.setImgName("deleted_user_profile_image.png");
+        System.out.println(firebaseService.generateURL(toRemove.getImgName()));
+        userService.save(toRemove);
+        queueService.sendToTopic("users_events", objectMapper.writeValueAsString(toRemove), "USER_DELETED");
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

@@ -100,6 +100,7 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwt, roles, userMapper.map(byUsername)));
     }
 
+    @SneakyThrows
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -161,9 +162,13 @@ public class AuthController {
         String imgTitle = userService.getRandomProfilePhotoTitle();
         user.setImgName(imgTitle);
         user.setProvider(Provider.LOCAL);
-        userRepository.save(user);
+
+        User saved = userRepository.save(user);
 
         emailService.sendVerificationEmail(user.getEmail(), codeService.createCode(user.getEmail()).getValue());
+
+        //todo remove
+        queueService.sendToTopic("users_events", objectMapper.writeValueAsString(saved), "USER_CREATED");
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
@@ -177,7 +182,7 @@ public class AuthController {
         }
         user.setEmailConfirmed(true);
         User saved = userRepository.save(user);
-        queueService.sendToTopic("users_events", objectMapper.writeValueAsString(saved), "USER_CREATED");
+//        queueService.sendToTopic("users_events", objectMapper.writeValueAsString(saved), "USER_CREATED");
         return new ResponseEntity<>(HttpStatus.OK);
 
 
